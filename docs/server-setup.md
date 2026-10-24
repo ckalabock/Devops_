@@ -120,3 +120,23 @@ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 Сертификат предъявляется клиенту как доверенный через `curl --cacert ~/devops.crt`;
 в браузере самоподписанный сертификат принимается вручную либо импортируется в
 хранилище доверенных сертификатов.
+
+## 9. Контейнеризация
+
+| Параметр | Значение |
+|---|---|
+| Способ установки Docker Engine | официальный репозиторий `download.docker.com` (пакет `docker-ce`, не `docker.io`) |
+| Версия | Docker Engine 29.9.2, Compose v5.6.1 |
+| Участники группы `docker` | `devops` (учётная запись имеет право sudo) |
+| Расположение проекта | `/home/devops/app` (доставка `rsync` из репозитория `devops-course-2026`) |
+| Файл `.env` | `/home/devops/app/.env`, права `600`, владелец `devops`; в репозиторий не входит |
+| Публикуемые порты | только `127.0.0.1:5000` (приложение); порт СУБД 5432 не публикуется |
+| Именованные тома | `app_db_data` → `/var/lib/postgresql/data` |
+| Сеть | пользовательская сеть `app_backend` (bridge), сервис СУБД доступен по имени `db` |
+| Обратный прокси-сервер | Nginx, `location /app/` → `proxy_pass http://127.0.0.1:5000/` с заголовками `Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto` |
+| Команда запуска | `docker compose up -d --build` в каталоге `/home/devops/app` |
+| Снимок состояния | `05-docker-compose` |
+
+Восстановление: установить Docker Engine по инструкции, добавить `devops` в группу `docker`,
+доставить каталог `app/` средствами `rsync`, создать `.env` из шаблона `.env.example`,
+ограничить права `chmod 600 .env`, выполнить `docker compose up -d --build`.
