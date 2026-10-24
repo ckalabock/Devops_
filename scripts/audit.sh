@@ -51,6 +51,16 @@ check 'в каталоге ресурса нет файлов с правом з
 check 'права закрытого ключа TLS равны 600' \
     bash -c "test \"\$(sudo -n stat -c '%a' /etc/ssl/private/devops.key)\" = 600"
 
+echo '[5] Контейнеризация'
+check 'служба docker активна' \
+    bash -c "systemctl is-active --quiet docker"
+check 'контейнер СУБД находится в состоянии healthy' \
+    bash -c "test \"\$(docker inspect -f '{{.State.Health.Status}}' app-db-1)\" = healthy"
+check 'порты 5000 и 5432 не прослушиваются вне 127.0.0.1' \
+    bash -c "test -z \"\$(ss -tln | awk '{print \$4}' | grep -E ':(5000|5432)\$' | grep -v '^127.0.0.1:')\""
+check 'права файла ~/app/.env равны 600' \
+    bash -c "test \"\$(stat -c '%a' ~/app/.env)\" = 600"
+
 echo
 if [ "$FAILED" -eq 0 ]; then
     echo 'Все проверки пройдены.'
