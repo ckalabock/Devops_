@@ -5,7 +5,7 @@ set -euo pipefail
 
 REMOTE="devops"
 REMOTE_DIR="/var/www/devops-site"
-SITE_URL="https://192.168.56.102"
+SITE_URL="https://devops.local"
 CA_CERT="${HOME}/devops.crt"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 LOCAL_DIR="${REPO_ROOT}/site/"
