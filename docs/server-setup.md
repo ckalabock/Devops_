@@ -140,3 +140,26 @@ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 Восстановление: установить Docker Engine по инструкции, добавить `devops` в группу `docker`,
 доставить каталог `app/` средствами `rsync`, создать `.env` из шаблона `.env.example`,
 ограничить права `chmod 600 .env`, выполнить `docker compose up -d --build`.
+
+## 10. Ansible
+
+| Параметр | Значение |
+|---|---|
+| Расположение проекта | `ansible/` в репозитории `https://github.com/ckalabock/Devops_` (ветка `feature/ansible`) |
+| Управляющий узел | WSL Ubuntu 26.04 на хостовой системе: `ansible [core 2.20.1]`, `sshpass` |
+| Управляемый узел | VM `devops-vm`, Ubuntu 26.04, Host-only адрес `192.168.56.102`, SSH порт 22 |
+| Inventory | `ansible/inventory/bootstrap.ini` (учётная запись `student`, вход по паролю) и `ansible/inventory/prod.ini` (учётная запись `devops`, ключ `~/.ssh/devops_vm`) |
+| Переменные | `ansible/group_vars/all.yml`: `app_image`, `app_tag`, `app_container_name`, `app_host_port`, `app_internal_port` |
+| Роли | `base` — пакеты, официальный репозиторий Docker, Docker Engine; `ssh` — пользователь `devops`, ключ, sudoers, hardening sshd, UFW; `nginx` — установка, шаблон reverse proxy, отключение default site; `app` — загрузка образа, контейнер, health-проверка |
+| Адрес образа | `ghcr.io/ckalabock/devops-ci-app` |
+| Тег (полный SHA) | `4c671bba50b7b13d2ce4ef20f30b9adb518c6a03` (зелёный коммит ПР № 10) |
+| Порт контейнера | публикуется только на `127.0.0.1:5000`; внешний доступ через Nginx, порт 80 |
+| Health endpoint | `GET /health` → `{"status":"ok"}`; сведения о службе — `GET /` |
+| Первичный запуск | `ansible-playbook -i inventory/bootstrap.ini site.yml --ask-pass --ask-become-pass` (неинтерактивный вариант: `--connection-password-file` и `--become-password-file`) |
+| Повторный запуск | `ansible-playbook site.yml` (prod inventory из `ansible.cfg`, ключ `devops`) |
+| Read-only аудит | `ansible-playbook verify.yml` (проверяет sshd, контейнер и `/health`, не меняет конфигурацию) |
+
+Восстановление: развернуть управляющий узел с Ansible и `sshpass`, восстановить VM к чистому
+снимку, задать Host-only адрес, выполнить первичный запуск по `bootstrap.ini`, затем повторный
+запуск по `prod.ini`. Пароли и закрытый ключ в документ не включаются; версия приложения задаётся
+переменной `app_tag` и берётся из результата CI.
