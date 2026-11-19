@@ -1,0 +1,6 @@
+---
+app_image: "ghcr.io/ckalabock/devops-ci-app"
+app_tag: "4c671bba50b7b13d2ce4ef20f30b9adb518c6a03"
+app_container_name: "devops-ci-app"
+app_host_port: 5000
+app_internal_port: 5000
